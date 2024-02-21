@@ -1,59 +1,55 @@
 #include <iostream>
 #include <vector>
-#include <queue>
+#include <algorithm>
 #include <limits>
+
 using namespace std;
 
 const int INF = numeric_limits<int>::max();
-typedef pair<int, int> pii;
 
-vector<int> dijkstra(const vector<vector<pii>>& graph, int src) {
-    int n = graph.size();
-    vector<int> dist(n, INF);
-    priority_queue<pii, vector<pii>, greater<pii>> pq;
-
-    dist[src] = 0;
-    pq.push({0, src});
-
-    while (!pq.empty()) {
-        int currentDist = pq.top().first;
-        int current = pq.top().second;
-        pq.pop();
-
-        if (dist[current] < currentDist) continue;
-
-        for (const auto& edge : graph[current]) {
-            int next = edge.first, nextDist = currentDist + edge.second;
-            if (dist[next] > nextDist) {
-                dist[next] = nextDist;
-                pq.push({nextDist, next});
+// 플로이드-워셜 알고리즘 함수
+void floydWarshall(vector<vector<int>>& dist, int n) {
+    for (int k = 0; k < n; ++k) { // 경유하는 정점
+        for (int i = 0; i < n; ++i) { // 시작 정점
+            for (int j = 0; j < n; ++j) { // 도착 정점
+                // 경유해서 가는 비용이 더 저렴한 경우, 비용을 업데이트
+                if (dist[i][k] < INF && dist[k][j] < INF) { 
+                    dist[i][j] = min(dist[i][j], dist[i][k] + dist[k][j]);
+                }
             }
         }
     }
-
-    return dist;
 }
 
 int main() {
     int n, m;
     cin >> n >> m;
-    vector<vector<pii>> graph(n+1);
-
+    
+    vector<vector<int>> dist(n, vector<int>(n, INF));
+    
+    for (int i = 0; i < n; ++i) dist[i][i] = 0;
+    
     for (int i = 0; i < m; ++i) {
-        int u, v, w;
-        cin >> u >> v >> w;
-        graph[u].push_back({v, w});
+        int a, b, c;
+        cin >> a >> b >> c;
+        a--; b--; // 인덱스를 0부터 시작하도록 조정
+        dist[a][b] = min(dist[a][b], c);
     }
-
-    for (int i = 1; i <= n; ++i) {
-        vector<int> min_cost = dijkstra(graph, i);
-        for (int j = 1; j <= n; ++j) {
-            if (i == j) cout << "0 ";
-            else if (min_cost[j] == INF) cout << "0 ";
-            else cout << min_cost[j] << " ";
+    
+    // 플로이드-워셜 알고리즘을 사용하여 모든 정점 쌍의 최단 거리를 계산합니다.
+    floydWarshall(dist, n);
+    
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < n; ++j) {
+            if (dist[i][j] == INF) {
+                cout << 0 << " ";
+            } else {
+                cout << dist[i][j] << " ";
+            }
         }
         cout << "\n";
     }
 
     return 0;
 }
+
